@@ -24,8 +24,8 @@ export function SearchOverlay({ onClose }: SearchOverlayProps) {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        apiFetch("/vehicles")
-            .then((data: ApiVehicle[]) => setAllVehicles(data))
+        apiFetch<ApiVehicle[]>("/vehicles")
+            .then((data) => setAllVehicles(data))
             .catch(() => setAllVehicles([]))
             .finally(() => setLoading(false))
     }, [])
