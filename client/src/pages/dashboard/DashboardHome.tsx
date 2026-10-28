@@ -18,7 +18,7 @@ interface ApiBooking {
     id: number
     vehiclename: string
     vehiclecategory: string
-    img_url: string 
+    img_url: string
     startdate: string
     enddate: string
     totalprice: number
@@ -66,29 +66,45 @@ export default function DashboardHome() {
     const [threads, setThreads] = useState<ApiThread[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-
     useEffect(() => {
         Promise.all([
-            apiFetch("/dashboard/stats"),
-            apiFetch("/myBookings"),
-            apiFetch("/wishlist"),
-            apiFetch("/messages"),
+            apiFetch<Stats>("/dashboard/stats"),
+            apiFetch<ApiBooking[]>("/myBookings"),
+            apiFetch<ApiVehicle[]>("/wishlist"),
+            apiFetch<ApiThread[]>("/messages"),
         ])
-            .then(([statsData, bookingsData, wishlistData, threadsData]) => {
-                setStats(statsData)
-                setBookings(bookingsData)
-                setWishlist(
-                    wishlistData.slice(0, 4).map((v: ApiVehicle) => ({
-                        id: v.id,
-                        name: v.name,
-                        image: v.img_url,
-                        price: Number(v.dailyprice),
-                    }))
+            .then(
+                ([
+                    statsData,
+                    bookingsData,
+                    wishlistData,
+                    threadsData,
+                ]) => {
+                    setStats(statsData)
+                    setBookings(bookingsData)
+
+                    setWishlist(
+                        wishlistData.slice(0, 4).map((vehicle) => ({
+                            id: vehicle.id,
+                            name: vehicle.name,
+                            image: vehicle.img_url,
+                            price: Number(vehicle.dailyprice),
+                        }))
+                    )
+
+                    setThreads(threadsData.slice(0, 3))
+                }
+            )
+            .catch((err: unknown) => {
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : "Couldn't load your dashboard."
                 )
-                setThreads(threadsData.slice(0, 3))
             })
-            .catch((err) => setError(err instanceof Error ? err.message : "Couldn't load your dashboard."))
-            .finally(() => setLoading(false))
+            .finally(() => {
+                setLoading(false)
+            })
     }, [])
 
     const upcomingBookings: UpcomingBooking[] = bookings

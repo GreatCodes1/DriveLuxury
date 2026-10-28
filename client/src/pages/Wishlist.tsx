@@ -19,16 +19,16 @@ interface ApiVehicle {
 }
 
 function toVehicle(v: ApiVehicle): Vehicle {
-  return {
-    id: v.id,
-    name: v.name,
-    category: v.category,
-    image: v.img_url,
-    price: Number(v.dailyprice),
-    specs: [v.brand, v.model, v.year ? String(v.year) : null, v.colour]
-      .filter(Boolean) as string[],
-    rating: v.rating ?? 0, // or whatever default you prefer
-  }
+    return {
+        id: v.id,
+        name: v.name,
+        category: v.category,
+        image: v.img_url,
+        price: Number(v.dailyprice),
+        specs: [v.brand, v.model, v.year ? String(v.year) : null, v.colour]
+            .filter(Boolean) as string[],
+        rating: v.rating ?? 0, // or whatever default you prefer
+    }
 }
 
 export default function Wishlist() {
@@ -38,12 +38,22 @@ export default function Wishlist() {
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        apiFetch("/wishlist")
-            .then((data: ApiVehicle[]) => setSaved(data.map(toVehicle)))
-            .catch((err) => setError(err instanceof Error ? err.message : "Couldn't load your wishlist."))
-            .finally(() => setLoading(false))
+        apiFetch<ApiVehicle[]>("/wishlist")
+            .then((data) => {
+                setSaved(data.map(toVehicle))
+            })
+            .catch((err) => {
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : "Couldn't load your wishlist."
+                )
+            })
+            .finally(() => {
+                setLoading(false)
+            })
     }, [])
-    
+
 
     const removeFromSaved = async (id: Vehicle["id"]) => {
         const previous = saved

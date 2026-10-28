@@ -19,7 +19,7 @@ export default function PaymentMethods() {
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        apiFetch("/payment-methods")
+        apiFetch<SavedCard[]>("/payment-methods")
             .then((data) => setCards(data))
             .catch((err) => setError(err instanceof Error ? err.message : "Couldn't load your cards."))
             .finally(() => setLoading(false))

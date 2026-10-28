@@ -5,6 +5,12 @@ import { Toggle } from "../../components/common/Toggle"
 import { useTheme } from "../../context/ThemeContext"
 import { apiFetch } from "../../lib/api"
 
+interface ProfileNotificationPreferences {
+    email_notifications: boolean
+    sms_notifications: boolean
+    promo_notifications: boolean
+}
+
 export default function Settings() {
     const { theme, toggleTheme } = useTheme()
 
@@ -21,14 +27,16 @@ export default function Settings() {
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     useEffect(() => {
-        apiFetch("/profile")
+        apiFetch<ProfileNotificationPreferences>("/profile")
             .then((data) => {
                 setEmailNotifs(data.email_notifications)
                 setSmsNotifs(data.sms_notifications)
                 setPromoNotifs(data.promo_notifications)
             })
-            .catch(() => {})
-            .finally(() => setNotifsLoading(false))
+            .catch(() => { })
+            .finally(() => {
+                setNotifsLoading(false)
+            })
     }, [])
 
     const saveNotificationPrefs = async (next: { email?: boolean; sms?: boolean; promo?: boolean }) => {

@@ -29,7 +29,7 @@ export default function AdminPayments() {
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        apiFetch("/admin/transactions")
+        apiFetch<Transaction[]>("/admin/transactions")
             .then((data) => setTransactions(data))
             .catch((err) => setError(err instanceof Error ? err.message : "Couldn't load transactions."))
             .finally(() => setLoading(false))

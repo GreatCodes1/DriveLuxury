@@ -26,7 +26,7 @@ export default function MyBookings() {
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        apiFetch("/myBookings")
+        apiFetch<ApiBooking[]>("/myBookings")
             .then((data) => setBookings(data))
             .catch((err) => setError(err instanceof Error ? err.message : "Couldn't load your bookings."))
             .finally(() => setLoading(false))

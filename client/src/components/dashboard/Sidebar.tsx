@@ -12,7 +12,6 @@ import {
     UserRound,
     PanelLeftClose,
     PanelLeftOpen,
-    Inbox,
     Heart,
     X,
 } from "lucide-react"
@@ -54,7 +53,6 @@ export function Sidebar({
     userName,
     userTier,
     userAvatar = null,
-    unreadMessages = 0,
     collapsed,
     onCollapsedChange,
     mobileOpen,

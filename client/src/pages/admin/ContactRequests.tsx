@@ -25,7 +25,7 @@ export default function AdminContactRequests() {
     const [selected, setSelected] = useState<ContactRequest | null>(null)
 
     useEffect(() => {
-        apiFetch("/admin/contact-requests")
+        apiFetch<ContactRequest[]>("/admin/contact-requests")
             .then((data) => setRequests(data))
             .catch((err) => setError(err instanceof Error ? err.message : "Couldn't load contact requests."))
             .finally(() => setLoading(false))

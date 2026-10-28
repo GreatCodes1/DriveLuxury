@@ -4,9 +4,13 @@ import { Loader2, XCircle } from "lucide-react"
 import { Navbar } from "../components/Navbar"
 import { Footer } from "../components/Footer"
 import { ConfirmationStep } from "../components/checkout/ConfirmationStep"
-import { apiFetch } from "../lib/Api"
+import { apiFetch } from "../lib/api"
 
 type Status = "verifying" | "success" | "error"
+
+interface VerifyPaymentResponse {
+    bookingId: string | number
+}
 
 export default function PaymentCallback() {
     const [searchParams] = useSearchParams()
@@ -17,22 +21,28 @@ export default function PaymentCallback() {
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        if (!reference) {
-            setStatus("error")
-            setError("No payment reference was found in the URL.")
-            return
-        }
+    if (!reference) {
+        setStatus("error")
+        setError("No payment reference was found in the URL.")
+        return
+    }
 
-        apiFetch(`/paystack/verify/${reference}`)
-            .then((data) => {
-                setBookingId(data.bookingId)
-                setStatus("success")
-            })
-            .catch((err) => {
-                setError(err instanceof Error ? err.message : "We couldn't verify this payment.")
-                setStatus("error")
-            })
-    }, [reference])
+    apiFetch<VerifyPaymentResponse>(
+        `/paystack/verify/${encodeURIComponent(reference)}`
+    )
+        .then((data) => {
+            setBookingId(data.bookingId)
+            setStatus("success")
+        })
+        .catch((err) => {
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "We couldn't verify this payment."
+            )
+            setStatus("error")
+        })
+}, [reference])
 
     return (
         <div className="min-h-screen bg-surface text-default">

@@ -38,7 +38,7 @@ export default function AdminCustomers() {
     const [detailLoading, setDetailLoading] = useState(false)
 
     useEffect(() => {
-        apiFetch("/admin/users")
+        apiFetch<Customer[]>("/admin/users")
             .then((data) => setCustomers(data))
             .catch((err) => setError(err instanceof Error ? err.message : "Couldn't load customers."))
             .finally(() => setLoading(false))

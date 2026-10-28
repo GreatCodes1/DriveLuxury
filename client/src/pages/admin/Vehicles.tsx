@@ -47,7 +47,7 @@ export default function AdminVehicles() {
 
     const loadVehicles = () => {
         setLoading(true)
-        apiFetch("/vehicles")
+        apiFetch<Vehicle[]>("/vehicles")
             .then((data) => setVehicles(data))
             .catch((err) => setError(err instanceof Error ? err.message : "Couldn't load vehicles."))
             .finally(() => setLoading(false))

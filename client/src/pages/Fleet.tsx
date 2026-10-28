@@ -141,45 +141,49 @@ export default function Fleet() {
         })
     }, [categoriesError])
 
-    useEffect(() => {
-        apiFetch("/vehicles")
-            .then((data: ApiVehicle[]) => {
-                setVehicles(data.map(toVehicle))
+   useEffect(() => {
+    apiFetch<ApiVehicle[]>("/vehicles")
+        .then((data) => {
+            setVehicles(data.map(toVehicle))
+        })
+        .catch((err: unknown) => {
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Couldn't load the fleet."
+
+            setError(message)
+
+            setPopup({
+                message,
+                error: true,
             })
-            .catch((err) => {
-                const message =
+        })
+        .finally(() => {
+            setLoading(false)
+        })
+}, [])
+
+useEffect(() => {
+    if (!user) return
+
+    apiFetch<ApiVehicle[]>("/wishlist")
+        .then((data) => {
+            setWishlistIds(
+                new Set(data.map((vehicle) => vehicle.id))
+            )
+        })
+        .catch((err: unknown) => {
+            setPopup({
+                message:
                     err instanceof Error
                         ? err.message
-                        : "Couldn't load the fleet."
-
-                setError(message)
-                setPopup({
-                    message,
-                    error: true,
-                })
+                        : "Couldn't load your wishlist.",
+                error: true,
             })
-            .finally(() => setLoading(false))
-    }, [])
+        })
+}, [user])
 
-    useEffect(() => {
-        if (!user) return
-
-        apiFetch("/wishlist")
-            .then((data: ApiVehicle[]) => {
-                setWishlistIds(
-                    new Set(data.map((v) => v.id))
-                )
-            })
-            .catch((err) => {
-                setPopup({
-                    message:
-                        err instanceof Error
-                            ? err.message
-                            : "Couldn't load your wishlist.",
-                    error: true,
-                })
-            })
-    }, [user])
 
     const filteredVehicles = useMemo(() => {
         let list = vehicles.filter(
@@ -425,20 +429,20 @@ export default function Fleet() {
 
                                 {filteredVehicles.length ===
                                     0 && (
-                                    <p className="mt-8 text-center text-sm text-muted">
-                                        No vehicles match your
-                                        filters.
-                                    </p>
-                                )}
+                                        <p className="mt-8 text-center text-sm text-muted">
+                                            No vehicles match your
+                                            filters.
+                                        </p>
+                                    )}
 
                                 {filteredVehicles.length >
                                     PAGE_SIZE && (
-                                    <Pagination
-                                        page={page}
-                                        totalPages={totalPages}
-                                        onPageChange={setPage}
-                                    />
-                                )}
+                                        <Pagination
+                                            page={page}
+                                            totalPages={totalPages}
+                                            onPageChange={setPage}
+                                        />
+                                    )}
                             </>
                         )}
                     </div>

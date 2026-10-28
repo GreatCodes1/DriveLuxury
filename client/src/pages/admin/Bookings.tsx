@@ -64,14 +64,17 @@ export default function AdminBookings() {
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        apiFetch("/admin/bookings")
-            .then((data) => setBookings(data))
-            .catch(() => {
-                // Fall back to mock data silently — keeps the page usable
-                // while the backend/session isn't available in this preview.
-            })
-            .finally(() => setLoading(false))
-    }, [])
+    apiFetch<AdminBooking[]>("/admin/bookings")
+        .then((data) => {
+            setBookings(data)
+        })
+        .catch(() => {
+            // Keep the existing mock data if the request fails.
+        })
+        .finally(() => {
+            setLoading(false)
+        })
+}, [])
 
     const updateStatus = async (id: number, status: string) => {
         setError(null)

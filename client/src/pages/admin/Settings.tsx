@@ -19,6 +19,16 @@ interface AdminUser {
     role: string
 }
 
+interface AdminSettingsResponse {
+    business_name: string
+    support_email: string
+    cancellation_window_hours: number | string
+}
+
+interface CreateAdminResponse {
+    id: number
+}
+
 export default function AdminSettings() {
     const { user } = useAuth()
 
@@ -44,24 +54,43 @@ export default function AdminSettings() {
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        apiFetch("/admin/settings")
-            .then((data) => {
-                setBusinessName(data.business_name)
-                setSupportEmail(data.support_email)
-                setCancellationWindow(Number(data.cancellation_window_hours))
-            })
-            .catch((err) => setError(err instanceof Error ? err.message : "Couldn't load settings."))
-            .finally(() => setSettingsLoading(false))
+    apiFetch<AdminSettingsResponse>("/admin/settings")
+        .then((data) => {
+            setBusinessName(data.business_name)
+            setSupportEmail(data.support_email)
 
-        apiFetch("/admin/loyalty-tiers")
-            .then((data) => setTiers(data))
-            .catch(() => {})
-            .finally(() => setTiersLoading(false))
+            setCancellationWindow(
+                Number(data.cancellation_window_hours)
+            )
+        })
+        .catch((err: unknown) => {
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "Couldn't load settings."
+            )
+        })
+        .finally(() => {
+            setSettingsLoading(false)
+        })
 
-        apiFetch("/admin/users")
-            .then((data: AdminUser[]) => setAdmins(data.filter((u) => u.role === "admin")))
-            .catch(() => {})
-    }, [])
+    apiFetch<LoyaltyTier[]>("/admin/loyalty-tiers")
+        .then((data) => {
+            setTiers(data)
+        })
+        .catch(() => {})
+        .finally(() => {
+            setTiersLoading(false)
+        })
+
+    apiFetch<AdminUser[]>("/admin/users")
+        .then((data) => {
+            setAdmins(
+                data.filter((admin) => admin.role === "admin")
+            )
+        })
+        .catch(() => {})
+}, [])
 
     const handleSaveSettings = async (e: FormEvent) => {
         e.preventDefault()
@@ -100,24 +129,45 @@ export default function AdminSettings() {
         }
     }
 
-    const handleAddAdmin = async (e: FormEvent) => {
-        e.preventDefault()
-        setError(null)
-        try {
-            const result = await apiFetch("/admin/admins", {
-                method: "POST",
-                body: JSON.stringify({ name: newAdminName, email: newAdminEmail, password: newAdminPassword }),
-            })
-            setAdmins((prev) => [...prev, { id: result.id, name: newAdminName, email: newAdminEmail, role: "admin" }])
-            setNewAdminName("")
-            setNewAdminEmail("")
-            setNewAdminPassword("")
-            setShowAddAdmin(false)
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Couldn't create admin account.")
-        }
-    }
+   const handleAddAdmin = async (e: FormEvent) => {
+    e.preventDefault()
+    setError(null)
 
+    try {
+        const result = await apiFetch<CreateAdminResponse>(
+            "/admin/admins",
+            {
+                method: "POST",
+                body: JSON.stringify({
+                    name: newAdminName,
+                    email: newAdminEmail,
+                    password: newAdminPassword,
+                }),
+            }
+        )
+
+        setAdmins((prev) => [
+            ...prev,
+            {
+                id: result.id,
+                name: newAdminName,
+                email: newAdminEmail,
+                role: "admin",
+            },
+        ])
+
+        setNewAdminName("")
+        setNewAdminEmail("")
+        setNewAdminPassword("")
+        setShowAddAdmin(false)
+    } catch (err: unknown) {
+        setError(
+            err instanceof Error
+                ? err.message
+                : "Couldn't create admin account."
+        )
+    }
+}
     const handleRemoveAdmin = async (id: number) => {
         setError(null)
         const previous = admins

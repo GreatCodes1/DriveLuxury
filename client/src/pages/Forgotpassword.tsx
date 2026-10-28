@@ -7,6 +7,10 @@ import { apiFetch } from "../lib/api"
 
 type Step = "email" | "otp" | "password"
 
+interface VerifyResetOtpResponse {
+    resetToken: string
+}
+
 export default function ForgotPassword() {
     const navigate = useNavigate()
 
@@ -38,15 +42,24 @@ export default function ForgotPassword() {
         e.preventDefault()
         setError(null)
         setIsSubmitting(true)
+
         try {
-            const data = await apiFetch("/verify-reset-otp", {
-                method: "POST",
-                body: JSON.stringify({ email, otp }),
-            })
+            const data = await apiFetch<VerifyResetOtpResponse>(
+                "/verify-reset-otp",
+                {
+                    method: "POST",
+                    body: JSON.stringify({ email, otp }),
+                }
+            )
+
             setResetToken(data.resetToken)
             setStep("password")
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Something went wrong.")
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "Something went wrong."
+            )
         } finally {
             setIsSubmitting(false)
         }

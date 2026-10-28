@@ -1030,22 +1030,25 @@ export default function LandingPage() {
     const [vehiclesLoading, setVehiclesLoading] = useState(true)
 
     useEffect(() => {
-        apiFetch("/vehicles")
-            .then((data) => setVehicles(data))
-            .catch(() => {
-                setVehicles([])
-            })
-            .finally(() => {
-                setVehiclesLoading(false)
-            })
+    apiFetch<ApiVehicle[]>("/vehicles")
+        .then((data) => {
+            setVehicles(data)
+        })
+        .catch(() => {
+            setVehicles([])
+        })
+        .finally(() => {
+            setVehiclesLoading(false)
+        })
 
-        apiFetch("/reviews/featured")
-            .then((data) => setFeaturedReviews(data))
-            .catch(() => {
-                setFeaturedReviews([])
-            })
-    }, [])
-
+    apiFetch<ApiFeaturedReview[]>("/reviews/featured")
+        .then((data) => {
+            setFeaturedReviews(data)
+        })
+        .catch(() => {
+            setFeaturedReviews([])
+        })
+}, [])
     const popularVehicles = [...vehicles]
         .sort((first, second) => second.dailyprice - first.dailyprice)
         .slice(0, 4)

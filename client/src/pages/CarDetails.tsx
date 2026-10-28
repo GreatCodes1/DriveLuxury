@@ -35,6 +35,15 @@ interface ApiVehicle {
     images: string[]
 }
 
+interface ApiReviewsResponse {
+    reviews: ApiReview[]
+    averageReview: number | string | null
+}
+
+interface ApiAvailabilityResponse {
+    available: boolean
+}
+
 interface ApiReview {
     rating: number
     comment: string
@@ -102,21 +111,25 @@ export default function CarDetails() {
         if (!id) return
 
         setLoading(true)
+        setError(null)
 
         Promise.all([
-            apiFetch(`/vehicle/${id}`),
-            apiFetch(`/vehicle/${id}/reviews`),
+            apiFetch<ApiVehicle>(`/vehicle/${id}`),
+            apiFetch<ApiReviewsResponse>(
+                `/vehicle/${id}/reviews`
+            ),
         ])
             .then(([vehicleData, reviewData]) => {
                 setVehicle(vehicleData)
                 setReviews(reviewData.reviews)
+
                 setAverageReview(
-                    reviewData.averageReview
+                    reviewData.averageReview !== null
                         ? Number(reviewData.averageReview)
                         : null
                 )
             })
-            .catch((err) => {
+            .catch((err: unknown) => {
                 const message =
                     err instanceof Error
                         ? err.message
@@ -129,7 +142,9 @@ export default function CarDetails() {
                     error: true,
                 })
             })
-            .finally(() => setLoading(false))
+            .finally(() => {
+                setLoading(false)
+            })
     }, [id])
 
     useEffect(() => {
@@ -146,7 +161,7 @@ export default function CarDetails() {
         setAvailabilityStatus("checking")
 
         const timeout = setTimeout(() => {
-            apiFetch(
+            apiFetch<ApiAvailabilityResponse>(
                 `/vehicles/${id}/availability?start=${pickupDate}&end=${returnDate}`
             )
                 .then((data) => {

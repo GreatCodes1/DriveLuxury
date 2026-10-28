@@ -44,6 +44,16 @@ interface PopupState {
     error: boolean
 }
 
+interface CreateBookingResponse {
+    id: number
+    message: string
+}
+
+interface InitializePaymentResponse {
+    authorization_url: string
+    reference: string
+}
+
 const FALLBACK_STATE: CheckoutState = {
     vehicleId: 1,
     name: "Porsche 911 Carrera S",
@@ -109,8 +119,8 @@ export default function Checkout() {
     const [saveNewCard, setSaveNewCard] = useState(false)
 
     useEffect(() => {
-        apiFetch("/payment-methods")
-            .then((cards: SavedCard[]) => {
+        apiFetch<SavedCard[]>("/payment-methods")
+            .then((cards) => {
                 setSavedCards(cards)
 
                 const defaultCard = cards.find(
@@ -121,7 +131,7 @@ export default function Checkout() {
                     setSelectedCardId(defaultCard.id)
                 }
             })
-            .catch((err) => {
+            .catch((err: unknown) => {
                 setPopup({
                     message:
                         err instanceof Error
@@ -130,7 +140,9 @@ export default function Checkout() {
                     error: true,
                 })
             })
-            .finally(() => setLoadingSavedCards(false))
+            .finally(() => {
+                setLoadingSavedCards(false)
+            })
     }, [])
 
     const [driverDetails, setDriverDetails] =
@@ -186,9 +198,9 @@ export default function Checkout() {
             prev.map((addOn) =>
                 addOn.id === id
                     ? {
-                          ...addOn,
-                          enabled: !addOn.enabled,
-                      }
+                        ...addOn,
+                        enabled: !addOn.enabled,
+                    }
                     : addOn
             )
         )
@@ -277,16 +289,19 @@ export default function Checkout() {
         setIsSubmitting(true)
 
         try {
-            const booking = await apiFetch("/addBooking", {
-                method: "POST",
-                body: JSON.stringify({
-                    vehicleId: vehicle.vehicleId,
-                    startdate: vehicle.pickupDateTime,
-                    enddate: vehicle.returnDateTime,
-                    totalprice: total,
-                    status: "pending",
-                }),
-            })
+            const booking = await apiFetch<CreateBookingResponse>(
+                "/addBooking",
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        vehicleId: vehicle.vehicleId,
+                        startdate: vehicle.pickupDateTime,
+                        enddate: vehicle.returnDateTime,
+                        totalprice: total,
+                        status: "pending",
+                    }),
+                }
+            )
 
             if (typeof selectedCardId === "number") {
                 await apiFetch("/paystack/charge-saved", {
@@ -306,16 +321,19 @@ export default function Checkout() {
                     error: false,
                 })
             } else {
-                const payment = await apiFetch(
-                    "/paystack/initialize",
-                    {
-                        method: "POST",
-                        body: JSON.stringify({
-                            bookingId: booking.id,
-                            saveCard: saveNewCard,
-                        }),
-                    }
-                )
+                const payment =
+                    await apiFetch<InitializePaymentResponse>(
+                        "/paystack/initialize",
+                        {
+                            method: "POST",
+                            body: JSON.stringify({
+                                bookingId: booking.id,
+                                saveCard: saveNewCard,
+                            }),
+                        }
+                    )
+
+                window.location.href = payment.authorization_url
 
                 window.location.href =
                     payment.authorization_url
@@ -341,8 +359,8 @@ export default function Checkout() {
         step === 0
             ? "Continue"
             : step === 1
-              ? "Continue to Payment"
-              : "Pay Now"
+                ? "Continue to Payment"
+                : "Pay Now"
 
     if (confirmedBookingId !== null) {
         return (
@@ -467,7 +485,7 @@ export default function Checkout() {
                             lineItems={lineItems}
                             promoCode={promoCode}
                             onPromoCodeChange={setPromoCode}
-                            onApplyPromo={() => {}}
+                            onApplyPromo={() => { }}
                             total={total}
                             ctaLabel={ctaLabel}
                             onCtaClick={goToNextStep}

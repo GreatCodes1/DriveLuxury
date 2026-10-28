@@ -31,6 +31,33 @@ interface AdminBookingRow {
     status: string
 }
 
+interface AdminAnalyticsResponse {
+    revenueByMonth: {
+        month: string
+        revenue: number | string
+    }[]
+
+    bookingsByCategory: {
+        category: string
+        bookings: number | string
+    }[]
+}
+
+interface DashboardVehicle {
+    id: number
+    name: string
+    image: string
+    dailyRate: number
+    utilization: number
+}
+
+interface AdminDashboardStatsResponse {
+    newCustomers: number
+    fleetUtilization: number
+    topCustomers: TopCustomer[]
+    topVehicles: DashboardVehicle[]
+}
+
 const STATUS_STYLES: Record<string, string> = {
     confirmed: "bg-success/10 text-success",
     rented: "bg-success/10 text-success",
@@ -55,51 +82,86 @@ export default function AdminDashboard() {
 
     useEffect(() => {
         Promise.all([
-            apiFetch("/admin/analytics"),
-            apiFetch("/admin/bookings"),
-            apiFetch("/admin/dashboard/stats"),
+            apiFetch<AdminAnalyticsResponse>(
+                "/admin/analytics"
+            ),
+            apiFetch<AdminBookingRow[]>(
+                "/admin/bookings"
+            ),
+            apiFetch<AdminDashboardStatsResponse>(
+                "/admin/dashboard/stats"
+            ),
         ])
-            .then(([analytics, allBookings, dashboardStats]) => {
-                setRevenueByMonth(
-                    analytics.revenueByMonth.map((r: { month: string; revenue: string }) => ({
-                        label: r.month,
-                        value: Number(r.revenue),
-                    }))
-                )
-                setCategorySegments(
-                    analytics.bookingsByCategory.map(
-                        (c: { category: string; bookings: string }, i: number) => ({
-                            label: c.category,
-                            value: Number(c.bookings),
-                            color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
-                        })
+            .then(
+                ([
+                    analytics,
+                    allBookings,
+                    dashboardStats,
+                ]) => {
+                    setRevenueByMonth(
+                        analytics.revenueByMonth.map((row) => ({
+                            label: row.month,
+                            value: Number(row.revenue),
+                        }))
                     )
-                )
-                setBookings(allBookings.slice(0, 5))
-                setActiveBookingsCount(
-                    allBookings.filter((b: AdminBookingRow) =>
-                        ["confirmed", "pending", "rented"].includes(b.status)
-                    ).length
-                )
-                setNewCustomers(dashboardStats.newCustomers)
-                setFleetUtilization(dashboardStats.fleetUtilization)
-                setTopCustomers(dashboardStats.topCustomers)
-                setFleetUnits(
-                    dashboardStats.topVehicles.map(
-                        (v: { id: number; name: string; image: string; dailyRate: number; utilization: number }) => ({
-                            id: v.id,
-                            name: v.name,
-                            image: v.image,
-                            dailyRate: v.dailyRate,
-                            utilization: v.utilization,
-                        })
+
+                    setCategorySegments(
+                        analytics.bookingsByCategory.map(
+                            (category, index) => ({
+                                label: category.category,
+                                value: Number(category.bookings),
+                                color:
+                                    CATEGORY_COLORS[
+                                    index % CATEGORY_COLORS.length
+                                    ],
+                            })
+                        )
                     )
+
+                    setBookings(allBookings.slice(0, 5))
+
+                    setActiveBookingsCount(
+                        allBookings.filter((booking) =>
+                            ["confirmed", "pending", "rented"].includes(
+                                booking.status
+                            )
+                        ).length
+                    )
+
+                    setNewCustomers(
+                        dashboardStats.newCustomers
+                    )
+
+                    setFleetUtilization(
+                        dashboardStats.fleetUtilization
+                    )
+
+                    setTopCustomers(
+                        dashboardStats.topCustomers
+                    )
+
+                    setFleetUnits(
+                        dashboardStats.topVehicles.map((vehicle) => ({
+                            id: vehicle.id,
+                            name: vehicle.name,
+                            image: vehicle.image,
+                            dailyRate: vehicle.dailyRate,
+                            utilization: vehicle.utilization,
+                        }))
+                    )
+                }
+            )
+            .catch((err: unknown) => {
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : "Couldn't load dashboard data."
                 )
             })
-            .catch((err) => setError(err instanceof Error ? err.message : "Couldn't load dashboard data."))
-            .finally(() => setLoading(false))
+            .finally(() => {
+                setLoading(false)
+            })
     }, [])
-
     const totalRevenue = useMemo(
         () => revenueByMonth.reduce((sum, m) => sum + m.value, 0),
         [revenueByMonth]
@@ -120,7 +182,6 @@ export default function AdminDashboard() {
                 dateRangeLabel="Jun 01 - Jun 30, 2026"
                 adminName={user?.name ?? "Admin"}
                 adminAvatar="https://i.pravatar.cc/100?img=47"
-                hasNotifications
             />
 
             <div className="p-6">

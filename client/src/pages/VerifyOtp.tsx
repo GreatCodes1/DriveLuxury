@@ -3,7 +3,7 @@ import { useLocation, useNavigate, Link } from "react-router-dom"
 import { KeyRound, Zap, Loader2 } from "lucide-react"
 import { AuthLayout } from "../components/auth/AuthLayout"
 import { FormField } from "../components/auth/FormField"
-import { apiFetch } from "../lib/Api"
+import { apiFetch } from "../lib/api"
 
 interface SignUpState {
     fullName: string

@@ -19,20 +19,20 @@ interface ApiVehicle {
     dailyprice: number
     isavailable: boolean
     img_url: string
-    rating? : number
+    rating?: number
 }
 
 function toVehicle(v: ApiVehicle): Vehicle {
-  return {
-    id: v.id,
-    name: v.name,
-    category: v.category,
-    image: v.img_url,
-    price: Number(v.dailyprice),
-    specs: [v.brand, v.model, v.year ? String(v.year) : null, v.colour]
-      .filter(Boolean) as string[],
-    rating: v.rating ?? 0, // or whatever default makes sense
-  }
+    return {
+        id: v.id,
+        name: v.name,
+        category: v.category,
+        image: v.img_url,
+        price: Number(v.dailyprice),
+        specs: [v.brand, v.model, v.year ? String(v.year) : null, v.colour]
+            .filter(Boolean) as string[],
+        rating: v.rating ?? 0, // or whatever default makes sense
+    }
 }
 
 function toggleValue(list: string[], value: string) {
@@ -62,23 +62,44 @@ export default function SearchResults() {
         setLoading(true)
         setError(null)
 
-        apiFetch("/vehicles")
-            .then((data: ApiVehicle[]) => {
-                const available = data.filter((v) => v.isavailable)
-                const matched = query.trim()
-                    ? available.filter((v) => v.name.toLowerCase().includes(query.trim().toLowerCase()))
+        apiFetch<ApiVehicle[]>("/vehicles")
+            .then((data) => {
+                const available = data.filter(
+                    (vehicle) => vehicle.isavailable
+                )
+
+                const searchTerm = query.trim().toLowerCase()
+
+                const matched = searchTerm
+                    ? available.filter((vehicle) =>
+                        vehicle.name.toLowerCase().includes(searchTerm)
+                    )
                     : available
+
                 setVehicles(matched.map(toVehicle))
             })
-            .catch((err) => setError(err instanceof Error ? err.message : "Couldn't load results."))
-            .finally(() => setLoading(false))
+            .catch((err) => {
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : "Couldn't load results."
+                )
+            })
+            .finally(() => {
+                setLoading(false)
+            })
     }, [query])
 
     useEffect(() => {
         if (!user) return
-        apiFetch("/wishlist")
-            .then((data: ApiVehicle[]) => setWishlistIds(new Set(data.map((v) => v.id))))
-            .catch(() => {})
+
+        apiFetch<ApiVehicle[]>("/wishlist")
+            .then((data) => {
+                setWishlistIds(
+                    new Set(data.map((vehicle) => vehicle.id))
+                )
+            })
+            .catch(() => { })
     }, [user])
 
     const brandOptions = useMemo(() => {
