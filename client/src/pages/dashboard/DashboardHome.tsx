@@ -206,12 +206,15 @@ export default function DashboardHome() {
                 </div>
 
                 <div className="space-y-6">
-                    {/* {conciergeMessages.length > 0 ? (
+                    {conciergeMessages.length > 0 ? (
                         <ConciergeMessages messages={conciergeMessages} />
                     ) : (
                         !loading && (
                             <div className="rounded-xl border border-default bg-card p-4 text-center">
-                                <p className="text-sm text-muted">No messages yet.</p>
+                                <p className="text-sm text-muted">
+                                    No messages yet.
+                                </p>
+
                                 <Link
                                     to="/dashboard/messages"
                                     className="mt-2 inline-block text-xs font-medium text-primary hover:underline"
@@ -220,7 +223,8 @@ export default function DashboardHome() {
                                 </Link>
                             </div>
                         )
-                    )} */}
+                    )}
+
                     <QuickActions />
                 </div>
             </div>
