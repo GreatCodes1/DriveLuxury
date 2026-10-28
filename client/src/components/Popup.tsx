@@ -27,7 +27,7 @@ export default function Popup({
             role={error ? "alert" : "status"}
             aria-live="polite"
             className={[
-                "fixed right-5 top-5 z-50 flex w-[min(24rem,calc(100vw-2rem))] items-start gap-3 rounded-lg border px-4 py-3 shadow-lg",
+                "fixed right-5 top-5 z-150 flex w-[min(24rem,calc(100vw-2rem))] items-start gap-3 rounded-lg border px-4 py-3 shadow-lg",
                 error
                     ? "border-red-200 bg-red-50 text-red-700"
                     : "border-green-200 bg-green-50 text-green-700",
