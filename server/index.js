@@ -46,25 +46,30 @@ const startServer = async () => {
 }
 startServer();
 
-// ------------------------------------------------------------------ //
-// Shared mail transport (was being re-created inline in /register —
-// pulled out so /forgot-password can reuse it too).
-// ------------------------------------------------------------------ //
-const mailTransport = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.PG_USER,
-        pass: process.env.PG_PASS
-    }
-});
 
 const sendOtpEmail = async (email, otp, purpose = 'Email Verification') => {
-    await mailTransport.sendMail({
-        from: '"Auto Fleet" <greatcodes1@gmail.com>',
-        to: email,
-        subject: purpose,
-        html: `This is your one time otp <b>${otp}</b> and it expires in <b>15</b> minutes`,
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "api-key": process.env.BREVO_API_KEY,
+        },
+        body: JSON.stringify({
+            sender: {
+                name: process.env.MAIL_FROM_NAME || "Drive Luxury",
+                email: process.env.MAIL_FROM_EMAIL,
+            },
+            to: [{ email }],
+            subject: purpose,
+            htmlContent: `This is your one time otp <b>${otp}</b> and it expires in <b>15</b> minutes`,
+        }),
     });
+
+    if (!response.ok) {
+        const errBody = await response.text();
+        throw new Error(`Brevo send failed (${response.status}): ${errBody}`);
+    }
 };
 
 const upsertOtp = async (email, otp) => {
@@ -1707,10 +1712,7 @@ app.delete("/wishlist/:id", verifyJWT, async (req, res) => {
         })
     }
 })
-// ==================================================================== //
-// NEW: password reset flow (SignIn's "Forgot Password?" link had nowhere
-// to go). Reuses the same otps table as signup verification.
-// ==================================================================== //
+
 
 app.post("/forgot-password", async (req, res) => {
     try {
