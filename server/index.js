@@ -155,6 +155,10 @@ const decryptRefundAccountNumber = (
     return decrypted.toString("utf8")
 }
 
+app.get("/", async (req, res) => {
+    return res.status(200).json({message: 'Server started and running.'})
+})
+
 app.post("/register", async (req, res) => {
     try {
         const { email } = req.body;
