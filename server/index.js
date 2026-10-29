@@ -260,6 +260,13 @@ app.post("/verifyOTP", async (req, res) => {
         client.release();
     }
 });
+
+const cookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+};
+
 app.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -307,11 +314,7 @@ app.post("/login", async (req, res) => {
             }
         );
 
-        res.cookie("token", token, {
-            sameSite: "strict",
-            httpOnly: true,
-            secure: false,
-        });
+        res.cookie("token", token, cookieOptions);
 
         return res
             .status(200)
@@ -1642,11 +1645,7 @@ app.get("/admin/analytics", verifyJWT, requireAdmin, async (req, res) => {
 })
 
 app.post("/logout", verifyJWT, (req, res) => {
-    res.clearCookie("token", {
-        sameSite: 'strict',
-        httpOnly: true,
-        secure: false,
-    })
+    res.clearCookie("token", cookieOptions);
 
     return res.status(200).json({ message: 'You have been logged out successfully' })
 })
@@ -2779,9 +2778,9 @@ app.get(
                 amount: Number(row.amount),
                 account_number: row.account_number_encrypted
                     ? decryptRefundAccountNumber(
-                          row.account_number_encrypted,
-                          encryptionKey
-                      )
+                        row.account_number_encrypted,
+                        encryptionKey
+                    )
                     : null,
                 account_number_encrypted: undefined,
             }))
@@ -3434,13 +3433,13 @@ app.get(
     }
 )
 
-app.post('/addCategory', verifyJWT, requireAdmin,  async (req, res) => {
+app.post('/addCategory', verifyJWT, requireAdmin, async (req, res) => {
     try {
-        const {category} = req.body;
-        const check =  await pool.query('SELECT 1 FROM categories WHERE LOWER(name) = LOWER($1)', [category])
-        if (check.rowCount > 0) return res.status(400).json({message: 'Category already exists'})
+        const { category } = req.body;
+        const check = await pool.query('SELECT 1 FROM categories WHERE LOWER(name) = LOWER($1)', [category])
+        if (check.rowCount > 0) return res.status(400).json({ message: 'Category already exists' })
         await pool.query('INSERT INTO categories (name) VALUES ($1)', [category])
-       return res.status(200).json({message: 'Category added successfully'}) 
+        return res.status(200).json({ message: 'Category added successfully' })
     } catch (err) {
         console.log("Internal server Error: ", err.message);
         return res.status(500).json({ message: 'Internal server error' });
