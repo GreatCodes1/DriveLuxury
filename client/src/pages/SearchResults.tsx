@@ -141,7 +141,7 @@ export default function SearchResults() {
     }
 
     return (
-        <div className="min-h-screen bg-surface text-default">
+        <div className="min-h-screen bg-surface text-default pt-15">
             <Navbar />
 
             <div className="border-b border-default bg-surface-alt">

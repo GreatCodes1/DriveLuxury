@@ -20,7 +20,7 @@ const LOCATIONS = [
 
 
 export default function Locations() {
-    return (
+    return (s
         <div className="min-h-screen bg-surface text-default pt-15">
             <Navbar />
 
