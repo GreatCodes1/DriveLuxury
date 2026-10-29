@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://your-backend-url.com/:path*" },
+    { "source": "/api/:path*", "destination": "https://api-drive-luxury.onrender.com/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
